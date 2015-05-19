@@ -18,7 +18,7 @@ module Lita
         w2_index = rand(w2.size - 1) + 1
         w2_index = 1 if w2.size <= 2
 
-        puts (w1[0..w1_index] + w2[w2_index..-1]).join
+        response.reply (w1[0..w1_index] + w2[w2_index..-1]).join
       end
 
       class Word < Struct.new(:word, :parts)
