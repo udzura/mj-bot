@@ -95,7 +95,7 @@ module Lita
       end
 
       def random_mahjong_word_from_list
-        @@config["mahjong_words_list"].sample
+        @@config["mahjong_words"].sample
       end
     end
     Lita.register_handler(FutatsunaHandler)
