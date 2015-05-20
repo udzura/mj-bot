@@ -9,7 +9,7 @@ module Lita
 
       def make_futatsuna(response)
         explain = true
-        matches = response.matches[0][0].split(/[ 　]/)
+        matches = response.matches[0][0].split(/[ 　]+/)
         matches.shift
         matches.delete(nil)
         if matches.length == 0
