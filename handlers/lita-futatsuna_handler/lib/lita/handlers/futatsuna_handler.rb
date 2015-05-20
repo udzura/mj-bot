@@ -28,10 +28,8 @@ module Lita
         w1 = group_by_clause(first).map(&:join)
         w2 = group_by_clause(second).map(&:join)
 
-        w1_index = rand(w1.size - 1)
-        w1_index = 0 if w1.size <= 2
-        w2_index = rand(w2.size - 1) + 1
-        w2_index = 1 if w2.size <= 2
+        w1_index = w1.size <= 2 ? 0 :  rand(w1.size - 1)
+        w2_index = w2.size <= 2 ? w2.size - 1 : rand(w2.size - 1)
 
         response.reply (w1[0..w1_index] + w2[w2_index..-1]).join
         response.reply ("( #{first} + #{second} )") if explain
