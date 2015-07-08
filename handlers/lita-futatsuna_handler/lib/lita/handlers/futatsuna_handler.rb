@@ -1,24 +1,39 @@
 # -*- coding: utf-8 -*-
 require "mecab"
+require "json"
+require "yaml"
 
 module Lita
   module Handlers
     class FutatsunaHandler < Handler
-      route /二つ名[ 　]+(.+)[ 　]+(.+)/, :make_futatsuna, help: { "二つ名 foo bar" => "Makes futatsuna with foo and bar." }
+      route /二つ名(.*)/, :make_futatsuna, help: { "二つ名 foo bar" => "Makes futatsuna with foo and bar." }
+      @@config = YAML.load_file('futatsuna.yml')
 
       def make_futatsuna(response)
-        first = word = response.matches[0][0]
-        second = word = response.matches[0][1]
-
+        explain = true
+        matches = response.matches[0][0].split(/[ 　]+/)
+        matches.delete("")
+        if matches.length == 0
+          first = random_word_from_wikipedia[0]
+          second = random_mahjong_word_from_list
+          first, second = second, first if (rand(2) == 0)
+        elsif matches.length == 1
+          first = matches[0]
+          second = random_mahjong_word_from_list
+          first, second = second, first if (rand(2) == 0)
+        elsif matches.length >= 2
+          first = word = matches[0]
+          second = word = matches[1]
+          explain = false
+        end
         w1 = group_by_clause(first).map(&:join)
         w2 = group_by_clause(second).map(&:join)
 
-        w1_index = rand(w1.size - 1)
-        w1_index = 0 if w1.size <= 2
-        w2_index = rand(w2.size - 1) + 1
-        w2_index = 1 if w2.size <= 2
+        w1_index = w1.size <= 2 ? 0 : rand(w1.size - 1)
+        w2_index = w2.size <= 2 ? w2.size - 1 : rand(w2.size - 1)
 
         response.reply (w1[0..w1_index] + w2[w2_index..-1]).join
+        response.reply ("( #{first} + #{second} )") if explain
       end
 
       class Word < Struct.new(:word, :parts)
@@ -72,8 +87,17 @@ module Lita
 
         return a
       end
-    end
 
+      def random_word_from_wikipedia(num=1)
+        uri = URI.parse("http://ja.wikipedia.org/w/api.php?action=query&format=json&rnnamespace=0&list=random&rnlimit=#{num}")
+        json = Net::HTTP.get(uri)
+        result = JSON.parse(json)["query"]["random"].map{|a| a["title"].force_encoding("utf-8")}
+      end
+
+      def random_mahjong_word_from_list
+        @@config["mahjong_words"].sample
+      end
+    end
     Lita.register_handler(FutatsunaHandler)
   end
 end
